@@ -23,6 +23,7 @@
 
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
+
  
  SoftwareSerial mySerial(2,3); // RX, TX
  
@@ -50,13 +51,12 @@ void setup(void)
 
     if (wifi.joinAP(SSID, PASSWORD)) {
        strcpy(s,wifi.getLocalIP().c_str());
-    } else {
-       strcpy(s,"No IP");
     }
     
     wifi.enableMUX();
     wifi.startTCPServer(80);
     wifi.setTCPServerTimeout(10);
+    
  }
  
  
@@ -72,6 +72,14 @@ void loop(void)
    digitalWrite(A0,LOW);
 
     if (len > 0) {
+      // strcpy(s,"<HTML><HEAD>");
+      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+     // strcpy(s,"<meta http-equiv=\"refresh\" content=\"30\" >");
+     // wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+      strcpy(s,"</HEAD><BODY>Test");
+      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+      strcpy(s,"</BODY></HTML>");
       wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
       wifi.releaseTCP(mux_id);
       len = 0;
