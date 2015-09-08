@@ -21,6 +21,9 @@
 // #define USER_SEL_VERSION	VERSION_22
 // #define ESP8266_USE_SOFTWARE_SERIAL
 
+// http://www.atmel.com/webdoc/AVRLibcReferenceManual/index.html
+// Много хороших функций
+
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
 
@@ -72,12 +75,11 @@ void loop(void)
    digitalWrite(A0,LOW);
 
     if (len > 0) {
-      // strcpy(s,"<HTML><HEAD>");
+      strcpy(s,"<HTML><HEAD>");
       wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
-     // strcpy(s,"<meta http-equiv=\"refresh\" content=\"30\" >");
-     // wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
-      strcpy(s,"</HEAD><BODY>Test");
+      strcpy(s,"</HEAD><BODY>");
       wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+      dtostrf(3.14,4,2,s);
       wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
       strcpy(s,"</BODY></HTML>");
       wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
