@@ -27,65 +27,78 @@
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
 
- 
- SoftwareSerial mySerial(2,3); // RX, TX
- 
+SoftwareSerial mySerial(2,3); // RX, TX
+
 #define SSID                "OS"
 #define PASSWORD    "4957392716"
 
 ESP8266 wifi(mySerial);
 
-uint8_t buffer[128] = {0};
+uint8_t buffer[128] = {
+  0};
 uint8_t mux_id;
 uint32_t len = 0;
 
+char pip[16],aip[16];
 char s[128];
+const char delimiters[] = "\":";
 
 void setup(void)
 {
 
   pinMode(A0,OUTPUT);
   digitalWrite(A0,LOW);
-  
-   Serial.begin(57600);
-   mySerial.begin(57600);
-    
-    wifi.setOprToStationSoftAP();
 
-    if (wifi.joinAP(SSID, PASSWORD)) {
-       strcpy(s,wifi.getLocalIP().c_str());
-    }
-    
-    wifi.enableMUX();
-    wifi.startTCPServer(80);
-    wifi.setTCPServerTimeout(10);
-    
- }
- 
- 
-void loop(void)
-{
-    
-   digitalWrite(A0,HIGH);
+  Serial.begin(57600);
+  mySerial.begin(57600);
 
-    if (mySerial.available()) {
-      len = wifi.recv(&mux_id, buffer, sizeof(buffer), 100);
-    }
-    
-   digitalWrite(A0,LOW);
+  wifi.setOprToStationSoftAP();
 
-    if (len > 0) {
-      strcpy(s,"<HTML><HEAD>");
-      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
-      strcpy(s,"</HEAD><BODY>");
-      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
-      dtostrf(3.14,4,2,s);
-      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
-      strcpy(s,"</BODY></HTML>");
-      wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
-      wifi.releaseTCP(mux_id);
-      len = 0;
+  if (wifi.joinAP(SSID, PASSWORD)) {
+    strcpy(s,wifi.getLocalIP().c_str());
+    char *token;
+
+    token = strtok (s, delimiters);     
+
+    while(token != NULL) {
+      if  (strstr(token,"PIP")) strcpy(pip,strtok (NULL, delimiters)); 
+      if  (strstr(token,"AIP")) strcpy(aip,strtok (NULL, delimiters)); 
+      token = strtok (NULL, delimiters);   
     }
+  }
+
+  wifi.enableMUX();
+  wifi.startTCPServer(80);
+  wifi.setTCPServerTimeout(10);
 
 }
-        
+
+
+void loop(void)
+{
+
+  digitalWrite(A0,HIGH);
+
+  if (mySerial.available()) {
+    len = wifi.recv(&mux_id, buffer, sizeof(buffer), 100);
+  }
+
+  digitalWrite(A0,LOW);
+
+  if (len > 0) {
+    strcpy(s,"<HTML><HEAD>");
+    wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+    strcpy(s,"</HEAD><BODY>");
+    wifi.send(mux_id, (const uint8_t*)pip, strlen(pip) );
+    strcpy(s,"<P>");
+    wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+    wifi.send(mux_id, (const uint8_t*)aip, strlen(aip) );
+    strcpy(s,"</BODY></HTML>");
+    wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+    wifi.releaseTCP(mux_id);
+    len = 0;
+  }
+
+}
+
+
