@@ -27,6 +27,8 @@
 #include "ESP8266.h"
 #include <SoftwareSerial.h>
 
+char nmea[] = "$GPRMC,235954.354,A,5513.9122,N,03812.0149,E,046.7,196.9,030715,,,A*6C";
+
 SoftwareSerial mySerial(2,3); // RX, TX
 
 #define SSID                "OS"
@@ -69,6 +71,27 @@ void setup(void)
   wifi.enableMUX();
   wifi.startTCPServer(80);
   wifi.setTCPServerTimeout(10);
+  
+  String host = "62.113.122.5";
+  
+  uint32_t port = 80;
+  
+  static uint8_t muxid = 0; 
+  
+  wifi.createTCP(muxid,host,port);
+  
+  char snd[128];
+   
+    strcpy(snd,"GET /e.php?nmea=");
+    strcat(snd,nmea);
+    wifi.send(muxid, (const uint8_t*)snd, strlen(snd) );
+    
+    strcpy(snd," HTTP/1.1\r\n");
+    strcat(snd,"Host: a.pajero.su\r\n");
+    strcat(snd,"Connection: close\r\n\r\n");
+    wifi.send(muxid, (const uint8_t*)snd, strlen(snd) );
+    
+    wifi.releaseTCP(muxid);
 
 }
 
@@ -76,13 +99,12 @@ void setup(void)
 void loop(void)
 {
 
-  char nmea[] = "$GPRMC,235954.354,A,5513.9122,N,03812.0149,E,046.7,196.9,030715,,,A*6C\r\n";
-
   digitalWrite(A0,HIGH);
 
   if (mySerial.available()) {
     len = wifi.recv(&mux_id, buffer, sizeof(buffer), 100);
   }
+
 
   digitalWrite(A0,LOW);
 
