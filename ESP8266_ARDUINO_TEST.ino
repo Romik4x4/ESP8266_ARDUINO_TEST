@@ -34,8 +34,7 @@ SoftwareSerial mySerial(2,3); // RX, TX
 
 ESP8266 wifi(mySerial);
 
-uint8_t buffer[128] = {
-  0};
+uint8_t buffer[128] = {0};
 uint8_t mux_id;
 uint32_t len = 0;
 
@@ -77,6 +76,8 @@ void setup(void)
 void loop(void)
 {
 
+  char nmea[] = "$GPRMC,235954.354,A,5513.9122,N,03812.0149,E,046.7,196.9,030715,,,A*6C\r\n";
+
   digitalWrite(A0,HIGH);
 
   if (mySerial.available()) {
@@ -85,10 +86,26 @@ void loop(void)
 
   digitalWrite(A0,LOW);
 
-  if (len > 0) {
+  if (len > 0) {    
+    
+    while (1) {
+      
+      if (!wifi.send(mux_id, (const uint8_t*)nmea, strlen(nmea) )) {
+        wifi.releaseTCP(mux_id);
+        break;
+      }
+    }
+    len = 0;
+  }
+  
+/*    strcpy(s,wifi.getIPStatus().c_str());
+    wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
     strcpy(s,"<HTML><HEAD>");
     wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
     strcpy(s,"</HEAD><BODY>");
+    wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
+    strcpy(s,"<A href=\"/test\">Test</A>");
+    wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
     wifi.send(mux_id, (const uint8_t*)pip, strlen(pip) );
     strcpy(s,"<P>");
     wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
@@ -96,9 +113,8 @@ void loop(void)
     strcpy(s,"</BODY></HTML>");
     wifi.send(mux_id, (const uint8_t*)s, strlen(s) );
     wifi.releaseTCP(mux_id);
-    len = 0;
-  }
-
+    */
+   
 }
 
 
